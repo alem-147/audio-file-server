@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     allowed_headers: list[str] = ["Authorization", "Content-Type"]
     allow_credentials: bool = True
 
+    s3_endpoint_url: str = "http://localhost:9000"
+    s3_access_key: str = "minioadmin"
+    s3_secret_key: str = "minioadmin"
+    s3_bucket_name: str = "audio-files"
+    s3_region: str = "us-east-1"
+
     @property
     def allowed_origins(self) -> list[str]:
         """Origin the frontend is expected to run on, derived from its port."""

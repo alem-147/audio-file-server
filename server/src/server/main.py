@@ -4,10 +4,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from server.config import settings
+from server.storage import create_s3_client, ensure_bucket_exists
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    app.state.s3_client = create_s3_client(settings)
+    ensure_bucket_exists(app.state.s3_client, settings.s3_bucket_name)
     yield
 
 
