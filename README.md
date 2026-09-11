@@ -1,20 +1,35 @@
 # audio-file-server
 A small HTTP API for uploading, storing, listing, downloading, and inspecting audio files.
 
+Audio files are stored in an S3-compatible object store ([MinIO](https://min.io/)
+locally; real AWS S3 in production). See
+[`docs/design/infra.md`](docs/design/infra.md) for the reasoning behind that
+and other infra decisions.
 
-## Setup
+## Run (Docker Compose)
+
+Brings up the API and its MinIO backing store together:
 
 ```bash
-uv sync
+docker compose up --build
 ```
 
-## Run
+The API will be available at `http://localhost:8000` (override with
+`AUDIO_SERVER_PORT` in a root `.env` file if that port is already in use on
+your machine). The MinIO console is at `http://localhost:9001`
+(`minioadmin` / `minioadmin` by default).
+
+## Local development (without Docker)
+
+Run MinIO via Compose, then run the API directly for faster iteration:
 
 ```bash
+docker compose up minio
+cd server
+uv sync
+cp .env.example .env   # point AUDIO_SERVER_S3_ENDPOINT_URL at localhost:9000
 uv run <server-command>
 ```
-
-The API will be available at `http://localhost:8000`.
 
 ## API
 
@@ -53,6 +68,7 @@ curl "http://localhost:8000/files?maxduration=300"
 ## Tests
 
 ```bash
+cd server
 uv run pytest
 ```
 
