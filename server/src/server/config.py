@@ -1,5 +1,6 @@
 """Application settings loaded from the environment and .env file."""
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -33,6 +34,12 @@ class Settings(BaseSettings):
     s3_secret_key: str = "minioadmin"
     s3_bucket_name: str = "audio-files"
     s3_region: str = "us-east-1"
+
+    db_host: str = "localhost"
+    db_port: int = 5432
+    db_user: SecretStr
+    db_password: SecretStr
+    db_name: str = "audio-server-db"
 
     @property
     def allowed_origins(self) -> list[str]:

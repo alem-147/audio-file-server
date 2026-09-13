@@ -4,6 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from server.config import settings
+from server.db.session import create_session_factory
+from server.routes import router
 from server.storage import create_s3_client, ensure_bucket_exists
 
 
@@ -11,6 +13,7 @@ from server.storage import create_s3_client, ensure_bucket_exists
 async def lifespan(app: FastAPI):
     app.state.s3_client = create_s3_client(settings)
     ensure_bucket_exists(app.state.s3_client, settings.s3_bucket_name)
+    app.state.db_session_factory = create_session_factory(settings)
     yield
 
 
@@ -28,6 +31,8 @@ def create_app() -> FastAPI:
         allow_methods=settings.allowed_methods,
         allow_headers=settings.allowed_headers,
     )
+
+    app.include_router(router)
 
     return app
 
