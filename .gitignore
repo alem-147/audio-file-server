@@ -50,3 +50,4 @@ pnpm-debug.log*
 # --- Test fixtures (audio files dumped locally) ---
 fixtures/*
 !fixtures/.gitkeep
+!fixtures/*.wav
