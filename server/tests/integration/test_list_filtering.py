@@ -80,3 +80,49 @@ def test_pagination_envelope_total_reflects_full_filtered_count(client):
     assert len(body["items"]) == 2
     assert body["limit"] == 2
     assert body["offset"] == 0
+
+
+def test_default_fields_stay_light(client):
+    _upload(client, "list-fields-light.wav", sample_rate=47005)
+
+    response = client.get("/files", params={"sample_rate": 47005})
+
+    item = response.json()["items"][0]
+    assert item.keys() == {"name", "duration_seconds"}
+
+
+def test_fields_full_returns_full_info_shape(client):
+    uploaded = _upload(client, "list-fields-full.wav", sample_rate=47006)
+
+    response = client.get(
+        "/files", params={"sample_rate": 47006, "fields": "full"}
+    )
+
+    assert response.status_code == 200
+    item = response.json()["items"][0]
+    assert item == uploaded
+
+
+def test_fields_full_with_name_filter_batches_info_lookup(client):
+    a = _upload(client, "list-fields-batch-a.wav", sample_rate=47007)
+    b = _upload(client, "list-fields-batch-b.wav", sample_rate=47007)
+    _upload(client, "list-fields-batch-other.wav", sample_rate=47007)
+
+    response = client.get(
+        "/files",
+        params=[
+            ("name", "list-fields-batch-a.wav"),
+            ("name", "list-fields-batch-b.wav"),
+            ("fields", "full"),
+        ],
+    )
+
+    items = response.json()["items"]
+    assert {item["name"] for item in items} == {a["name"], b["name"]}
+    assert all(item.keys() == a.keys() for item in items)
+
+
+def test_fields_rejects_unknown_value(client):
+    response = client.get("/files", params={"fields": "bogus"})
+
+    assert response.status_code == 422

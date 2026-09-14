@@ -35,9 +35,13 @@ class FileListItem(BaseModel):
 
 
 class FileListResponse(BaseModel):
-    """Pagination envelope for `GET /files`."""
+    """Pagination envelope for `GET /files`.
 
-    items: list[FileListItem]
+    `items` is `FileListItem` by default, or `FileInfo` when the caller
+    passes `?fields=full` (see `routes.list_files`).
+    """
+
+    items: list[FileListItem] | list[FileInfo]
     total: int
     limit: int
     offset: int

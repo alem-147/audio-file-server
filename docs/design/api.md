@@ -33,13 +33,22 @@ Uploads raw audio bytes as the request body (`--data-binary @file.wav`).
 
 Returns a list of stored filenames, optionally filtered.
 
-- Response is intentionally light — an array of `{name, duration_seconds}`
-  entries, not the full metadata record. A caller that wants sample rate,
-  channels, etc. makes a second call to `GET /files/{name}/info`. Decision:
-  the second round trip is acceptable for this scope — keeping the list
-  endpoint's query cheap and its response shape stable matters more than
-  saving one HTTP call, especially once the file count is large enough that
-  "list" is used for browsing rather than for pulling every field.
+- Default response stays light — an array of `{name, duration_seconds}`
+  entries. `?fields=full` returns the same shape as `GET /files/{name}/info`
+  for every row on the page instead.
+- Decision: light by default, `full` opt-in. Not because the query is
+  cheaper — most fields are already read off the row to satisfy filters
+  (`db.md`), so returning them instead of discarding them costs ~nothing
+  extra. The real reasons: payload growth as the list scales, and not
+  surprising a caller that's paging through the dataset with a
+  bigger-than-expected response by default.
+- This also covers batch info-fetching: `?name=a&name=b&fields=full` gets
+  full records for several known names in one call, reusing the existing
+  OR-matched `name` filter (see below) — instead of one
+  `GET /files/{name}/info` call per name, or a dedicated batch endpoint.
+  A separate batch endpoint was considered and rejected for now: it would
+  need its own partial-failure shape (some names found, some not) for a
+  need `fields=full` already covers.
 - Unrecognized query params are rejected with `400 Bad Request` rather than
   silently ignored, so a typo'd filter (`?maxDuration=`) fails loudly instead
   of returning an unfiltered list.

@@ -4,7 +4,7 @@ See docs/design/api.md for the contract these implement.
 """
 
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
 from botocore.client import BaseClient
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
@@ -34,6 +34,7 @@ _KNOWN_LIST_FILES_PARAMS = {
     "max_created_at",
     "limit",
     "offset",
+    "fields",
 }
 
 
@@ -109,7 +110,7 @@ async def upload_file(
 
 @router.get(
     "/files",
-    response_model=FileListResponse,
+    response_model=None,
     dependencies=[Depends(reject_unknown_query_params)],
 )
 def list_files(
@@ -125,8 +126,14 @@ def list_files(
     max_created_at: datetime | None = None,
     limit: int = 100,
     offset: int = 0,
+    fields: Literal["full"] | None = None,
 ) -> FileListResponse:
-    """List stored files, filtered and paginated per docs/design/api.md."""
+    """List stored files, filtered and paginated per docs/design/api.md.
+
+    `?fields=full` returns the same shape as `GET /files/{name}/info` for
+    every row instead of the default light `{name, duration_seconds}` — see
+    docs/design/api.md for why this is opt-in rather than the default.
+    """
     filters = FileListFilters(
         name=name,
         channels=channels,
@@ -149,8 +156,13 @@ def list_files(
         .all()
     )
 
+    items = (
+        [FileInfo.model_validate(row) for row in rows]
+        if fields == "full"
+        else [FileListItem.model_validate(row) for row in rows]
+    )
     return FileListResponse(
-        items=[FileListItem.model_validate(row) for row in rows],
+        items=items,
         total=total,
         limit=filters.limit,
         offset=filters.offset,
