@@ -24,10 +24,10 @@ your machine). The MinIO console is at `http://localhost:9001`
 Run MinIO via Compose, then run the API directly for faster iteration:
 
 ```bash
-docker compose up minio
+docker compose up minio postgres
+cp .env.example .env   # point AUDIO_SERVER_S3_ENDPOINT_URL/AUDIO_SERVER_DB_HOST at localhost
 cd server
 uv sync
-cp .env.example .env   # point AUDIO_SERVER_S3_ENDPOINT_URL at localhost:9000
 uv run <server-command>
 ```
 

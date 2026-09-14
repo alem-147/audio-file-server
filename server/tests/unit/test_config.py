@@ -11,7 +11,7 @@ def _settings(**overrides):
 
     ``db_user``/``db_password`` have no defaults, so every test needs to
     supply them; disabling the .env file keeps these tests from picking up
-    whatever a developer's local server/.env happens to contain.
+    whatever a developer's local repo-root .env happens to contain.
     """
     overrides.setdefault("db_user", "test-user")
     overrides.setdefault("db_password", "test-password")

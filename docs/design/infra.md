@@ -55,6 +55,37 @@ Tradeoff to revisit before production:
   into Terraform/CloudFormation, and the app's startup check can be relaxed
   to a read-only existence check (or removed, trusting the bucket exists).
 
+## Database
+
+File metadata (name, size, duration, sample rate, etc.) is stored in
+Postgres rather than SQLite or an in-memory/file-backed store. For local
+development, that's a `postgres` container run via Docker Compose alongside
+the API and MinIO, matching the shape it will have in production.
+
+Rationale: as with object storage, the goal is dev/prod parity — stand up
+the real target service locally and treat moving to a managed instance
+(e.g. AWS RDS) later as a connection-string/credential swap, not a
+data-layer rewrite. Starting from SQLite or a flat file would mean revisiting
+the DB access code (driver, connection handling, migration story) the moment
+a second environment enters the picture; starting from Postgres now avoids
+that churn later.
+
+Current scope:
+
+- One Postgres instance, one `files` table.
+- Schema managed via Alembic migrations, run automatically at container
+  startup (`entrypoint.sh`) before the API starts.
+- The API server is the only client of the database.
+
+Future scope (managed Postgres):
+
+- Swap the Compose `postgres` service for a managed instance (e.g.
+  RDS/Cloud SQL) by changing `AUDIO_SERVER_DB_HOST` and credentials — no
+  application code changes.
+- Connection pooling, backups, and credential management (a secrets manager
+  instead of `.env`) become relevant and should be defined in infra-as-code,
+  not application code.
+
 ## Concurrency and scale (not yet addressed)
 
 Not yet designed; revisit if/when this grows beyond a single API instance.
