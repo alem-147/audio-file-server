@@ -728,6 +728,7 @@ name = "server"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "alembic" },
     { name = "boto3" },
     { name = "fastapi" },
     { name = "psycopg2-binary" },
@@ -738,7 +739,6 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "alembic" },
     { name = "httpx" },
     { name = "psycopg2-binary" },
     { name = "pytest" },
@@ -747,6 +747,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "alembic", specifier = ">=1.20.0" },
     { name = "boto3", specifier = ">=1.40.0" },
     { name = "fastapi", specifier = ">=0.141.1" },
     { name = "psycopg2-binary", specifier = ">=2.9.13" },
@@ -757,7 +758,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "alembic", specifier = ">=1.20.0" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "psycopg2-binary", specifier = ">=2.9.13" },
     { name = "pytest", specifier = ">=8.4.0" },

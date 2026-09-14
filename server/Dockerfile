@@ -6,9 +6,12 @@ WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
 COPY src ./src
+COPY alembic.ini ./
+COPY migrations ./migrations
+COPY entrypoint.sh ./
 
 RUN uv sync --frozen --no-dev
 
 EXPOSE 8000
 
-CMD ["uv", "run", "uvicorn", "server.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["./entrypoint.sh"]
