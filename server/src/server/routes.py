@@ -8,6 +8,7 @@ from typing import Annotated, Literal
 
 from botocore.client import BaseClient
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import Response
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -81,8 +82,11 @@ async def upload_file(
 
     stored_name = assign_upload_name(name)
 
-    s3_client.put_object(
-        Bucket=settings.s3_bucket_name, Key=stored_name, Body=body
+    await run_in_threadpool(
+        s3_client.put_object,
+        Bucket=settings.s3_bucket_name,
+        Key=stored_name,
+        Body=body,
     )
 
     file_row = File(
@@ -97,14 +101,14 @@ async def upload_file(
     )
     db.add(file_row)
     try:
-        db.commit()
+        await run_in_threadpool(db.commit)
     except IntegrityError as exc:
         db.rollback()
         raise HTTPException(
             status_code=409, detail=f"name already exists: {stored_name}"
         ) from exc
 
-    db.refresh(file_row)
+    await run_in_threadpool(db.refresh, file_row)
     return FileInfo.model_validate(file_row)
 
 
