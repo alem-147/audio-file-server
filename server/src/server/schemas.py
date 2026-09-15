@@ -26,9 +26,16 @@ class FileInfo(BaseModel):
 
 
 class FileListItem(BaseModel):
-    """One entry in the `GET /files` listing: name and duration only."""
+    """One entry in the `GET /files` listing: name and duration only.
 
-    model_config = ConfigDict(from_attributes=True)
+    ``extra="forbid"`` matters here: without it, a `FileInfo`-shaped dict
+    validates against this narrower model too (extra fields silently
+    ignored), and Pydantic's union matching in `FileListResponse.items`
+    can pick this model over `FileInfo` and silently truncate a
+    `?fields=full` row down to just these two fields.
+    """
+
+    model_config = ConfigDict(from_attributes=True, extra="forbid")
 
     name: str
     duration_seconds: float

@@ -114,7 +114,7 @@ async def upload_file(
 
 @router.get(
     "/files",
-    response_model=None,
+    response_model=FileListResponse,
     dependencies=[Depends(reject_unknown_query_params)],
 )
 def list_files(
